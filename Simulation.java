@@ -1,14 +1,18 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.Random;
 
 public class Simulation extends JFrame {
 
   // these are made public and static so that panel can access them
   public static SimulationPanel panel;
-  public static int rotationInDegrees;
+  public static double payloadRotation;
+  public static double bodyTubeRotation;
 
   int FRAME_HEIGHT = 1024;
   int FRAME_WIDTH = 1024;
+  private JTextArea textArea1;
+  private JTextArea textArea2;
 
   // constructor for the Simulation JFrame
   public Simulation(){
@@ -30,16 +34,33 @@ public class Simulation extends JFrame {
 
     Simulation frame = new Simulation();
 
-    // rotate inner loop by 5 degrees until full rotation
-    for( int i = 0; i <= 360; i += 5){
-      rotationInDegrees = i;        // set global rotation amount for panel paint method
-      panel.repaint();              // call panel to repaint
+    // loop operation 10 times
+    for(int i = 0; i < 10; i ++) {
+      System.out.println("Iteration: " + i);
+      // set body tube for random rotation
+      bodyTubeRotation = Math.toRadians(Math.random() * 360);
+      payloadRotation = 0;
+
+      panel.repaint();            // repaint panel to show the random rotation
       try {
-        Thread.sleep(100);    // sleep for 100millis to show effect
-      }catch(Exception e){
+        Thread.sleep(1500); // sleep before beginning next step
+      } catch (Exception e) {
         e.printStackTrace();
       }
 
+      for (int j = 0; j <= 360; j++) {  // rotate payload one degree at a time
+        payloadRotation = Math.toRadians(j);
+        panel.repaint();              // repaint panel to show
+        try {
+          Thread.sleep(10);     // sleep 20 millis so we don't rotate too fast
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
     }
+
+
+
   }
 }

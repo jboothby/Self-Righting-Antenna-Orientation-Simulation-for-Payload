@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 
 /**This class defines the JPanel for drawing the simulation
@@ -13,6 +14,7 @@ public class SimulationPanel extends JPanel {
   int[] CIRCLE_CENTER = {FRAME_HEIGHT/2, FRAME_WIDTH/2};
   int CIRCLE_RADIUS = FRAME_HEIGHT/4;
 
+
   /**Simple Constructor for the Panel**/
   public SimulationPanel(){}
 
@@ -21,6 +23,10 @@ public class SimulationPanel extends JPanel {
 
     Graphics2D g2 = ( Graphics2D ) g; // typecast graphics to graphics 2d
 
+    /*-------------------------------------------------- Update Data Fields ---------------------------------------------------------*/
+
+
+    g2.rotate(parent.bodyTubeRotation, CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
     /* ------------------------------------------------- Draw outer circle with dots ------------------------------------------------*/
     // draw center circle
     g2.setPaint(Color.BLACK);
@@ -36,14 +42,13 @@ public class SimulationPanel extends JPanel {
     /* -------------------------------------------------------------- inner rotation under this point ----------------------------------*/
 
     // rotate the rectangle based on conditions in parent
-    g2.rotate(Math.toRadians(parent.rotationInDegrees), CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
+    g2.rotate((-parent.bodyTubeRotation + parent.payloadRotation), CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
     // draw center rectangle
     g2.setPaint(Color.BLUE);
-    double[][] sq = centerSquare();                          // get array of points from centerSquare method
+    double[][] squareArray = centerSquare();                          // get array of points from centerSquare method
     Polygon centerSquare = new Polygon();                    // define polygon to hold square points
     for( int i = 0; i < 4; i++){                             // add points from array to polygon
-      centerSquare.addPoint((int)sq[i][0], (int)sq[i][1]);
-      System.out.println("Square corner " + i + ": <" + sq[i][0] + ", " + sq[i][1] + ">");
+      centerSquare.addPoint((int)squareArray[i][0], (int)squareArray[i][1]);
     }
     g2.draw(centerSquare);
 
@@ -53,7 +58,7 @@ public class SimulationPanel extends JPanel {
 
     // draw antenna extension from rectangle
     double antennaAngle = Math.toRadians(50);                           // angle that antenna extends from antenna loop
-    int antennaLength = 400;                                            // length of antenna extending from antenna loop
+    int antennaLength = 500;                                            // length of antenna extending from antenna loop
     int startPointX = (int) ( CIRCLE_CENTER[0] + (antennaLoopDiameter / 2) * Math.cos(Math.toRadians(45)));    // start point for antenna (right edge of antenna loop)
     int startPointY = (int) ( CIRCLE_CENTER[1] + (antennaLoopDiameter / 2) * Math.sin(Math.toRadians(45)));
     int endPointX = (int) (startPointX + ( antennaLength * Math.cos(antennaAngle))); // end point of antenna (start + length * cos/sin angle)

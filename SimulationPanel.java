@@ -22,11 +22,13 @@ public class SimulationPanel extends JPanel {
   int SWEET_SPOT_Y = 265;
   boolean stop = false;     // determines if antenna is in spot closest to sweet spot
   String direction = "cw"; // this string holds the direction the payload needs to turn. cw/ ccw
+  public static JPanel displayPanel = new JPanel();
 
 
 
   /**Simple Constructor for the Panel**/
   public SimulationPanel(){
+
     this.setBackground(Color.BLACK);
   }
 
@@ -116,8 +118,6 @@ public class SimulationPanel extends JPanel {
           dotShapeList[i].getBounds2D().getY(),
           6,
           6)){
-        System.out.println("Intersection at <" + dotShapeList[i].getBounds2D().getX()
-                            + ", " + dotShapeList[i].getBounds2D().getY() + ">");
       }
 
       // determine which shape is closest
@@ -129,7 +129,6 @@ public class SimulationPanel extends JPanel {
     /*----------------------------------------------------------Set globals to turn shape correct way -------------------------*/
     if( antennaRotated.intersects(closest.getBounds().getX(), closest.getBounds().getY(), 6, 6)){
       stop = true;
-      System.out.println("Most efficient spot found");
     }
 
 

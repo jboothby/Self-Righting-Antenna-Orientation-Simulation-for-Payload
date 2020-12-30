@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.util.Random;
 
 public class Simulation extends JFrame {
 
@@ -12,22 +10,22 @@ public class Simulation extends JFrame {
 
   int FRAME_HEIGHT = 1024;
   int FRAME_WIDTH = 1024;
-  private JTextArea textArea1;
-  private JTextArea textArea2;
 
   // constructor for the Simulation JFrame
   public Simulation() {
-    panel = new SimulationPanel();    // create panel
+    panel = new SimulationPanel();                    // create panel
     setContentPane(panel);                            // add panel to the frame
     panel.saveParent(this);                        // save parent as this object
 
+
     // set visual attributes for the JFrame
     this.setForeground(Color.WHITE);
-    this.setBackground(Color.BLACK);
+    this.setBackground(Color.LIGHT_GRAY);
     this.setTitle("Orientation Simulation");
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     this.setVisible(true);
+
   }
 
   public static void main(String args[]) {
@@ -37,7 +35,7 @@ public class Simulation extends JFrame {
 
     // loop operation 10 times
     for (int i = 0; i < 10; i++) {
-      //System.out.println("Iteration: " + i);
+      System.out.println("Iteration: " + i);
       // set body tube for random rotation
       bodyTubeRotation = Math.toRadians(Math.random() * 360);
       payloadRotation = 0;
@@ -57,12 +55,6 @@ public class Simulation extends JFrame {
         panel.repaint();              // repaint panel to show
         double currentHeight = panel.rotatedAntMaxHeight;
         if(panel.stop) break;   //break out of loop if we are intersecting the closest dot
-        if (currentHeight > maxHeight) {      //print out what the max hight was during the loop
-          maxHeight = currentHeight;
-          maxHeightAngle = j;
-          System.out.println("Max Height: " + maxHeight);
-          System.out.println("Max Height Angle: " + maxHeightAngle);
-        }
         try {
           Thread.sleep(5);     // sleep 20 millis so we don't rotate too fast
         } catch (Exception e) {
@@ -78,8 +70,13 @@ public class Simulation extends JFrame {
       }catch(Exception e){
         e.printStackTrace();
       }
-      panel.stop = false;
 
+      System.out.println("Max Height: " + (panel.rotatedAntMaxHeight - (panel.FRAME_HEIGHT / 2)));
+      System.out.println("Possible Height: " + (panel.FRAME_HEIGHT / 2));
+      System.out.println("Efficiency: " + (panel.rotatedAntMaxHeight - (panel.FRAME_HEIGHT / 2)) / (panel.FRAME_HEIGHT /2));
+      System.out.println('\n');
+
+      panel.stop = false;
 
 
       /*---------------------------------------- Sweet spot finder code -------------------------------
@@ -99,5 +96,14 @@ public class Simulation extends JFrame {
 
       }
     }
+
+    /*public static void printStats(){
+      displayStats.setText("Max Height: " + panel.rotatedAntMaxHeight + "\n" +
+                            "Possible Height: " + panel.FRAME_HEIGHT + "\n" +
+                            "Efficiency: " + panel.rotatedAntMaxHeight / panel.FRAME_HEIGHT);
+
+    }
+
+     */
   }
 

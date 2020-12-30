@@ -1,6 +1,10 @@
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 /**This class defines the JPanel for drawing the simulation
  * It includes methods for painting the graphics
@@ -13,6 +17,10 @@ public class SimulationPanel extends JPanel {
   int FRAME_WIDTH = 1024;
   int[] CIRCLE_CENTER = {FRAME_HEIGHT/2, FRAME_WIDTH/2};
   int CIRCLE_RADIUS = FRAME_HEIGHT/4;
+  int antStartPointX;
+  int antStartPointY;
+  int antEndPointX;
+  int antEndPointY;
 
 
   /**Simple Constructor for the Panel**/
@@ -23,47 +31,70 @@ public class SimulationPanel extends JPanel {
 
     Graphics2D g2 = ( Graphics2D ) g; // typecast graphics to graphics 2d
 
+
     /*-------------------------------------------------- Update Data Fields ---------------------------------------------------------*/
 
 
-    g2.rotate(parent.bodyTubeRotation, CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
-    /* ------------------------------------------------- Draw outer circle with dots ------------------------------------------------*/
-    // draw center circle
+    AffineTransform bodyTubeTransform = new AffineTransform();
+    bodyTubeTransform.rotate(parent.bodyTubeRotation, CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
+    /* ------------------------------------------------- Draw body tube with dots ------------------------------------------------*/
+    // draw body tube
+    Shape bodyTube = new Ellipse2D.Double(FRAME_WIDTH/4, FRAME_HEIGHT/4, FRAME_WIDTH /2, FRAME_HEIGHT /2); // define the body tube ellipse
+    Shape bodyTubeRotated = bodyTubeTransform.createTransformedShape(bodyTube);                                                // rotate body tube around origin with transform
     g2.setPaint(Color.BLACK);
-    g2.drawOval(FRAME_WIDTH/4,FRAME_HEIGHT/4,FRAME_HEIGHT/2,FRAME_HEIGHT/2);
+    g2.draw(bodyTubeRotated);
 
     // draw dots
     g2.setPaint(Color.RED);
     double[][] dots = dotArray();                           // get array of points from dotArray method
     for(int i = 0; i < dots.length; i++){                   // draw each point in turn
-      g2.fillRect((int)dots[i][0], (int)dots[i][1], 4, 4);
+      Shape dot = new Rectangle2D.Double((int)dots[i][0], (int)dots[i][1], 4, 4);  // define the dot
+      Shape dotRotated = bodyTubeTransform.createTransformedShape(dot);                          // rotate the dot about origin with affine transform
+      g2.fill(dotRotated);
     }
 
     /* -------------------------------------------------------------- inner rotation under this point ----------------------------------*/
 
     // rotate the rectangle based on conditions in parent
-    g2.rotate((-parent.bodyTubeRotation + parent.payloadRotation), CIRCLE_CENTER[0], CIRCLE_CENTER[1]);
+    AffineTransform payloadTransform = new AffineTransform();                             // initialize transform
+    payloadTransform.rotate(parent.payloadRotation, CIRCLE_CENTER[0], CIRCLE_CENTER[1]);  // define transform based on parent
+
     // draw center rectangle
     g2.setPaint(Color.BLUE);
-    double[][] squareArray = centerSquare();                          // get array of points from centerSquare method
-    Polygon centerSquare = new Polygon();                    // define polygon to hold square points
-    for( int i = 0; i < 4; i++){                             // add points from array to polygon
-      centerSquare.addPoint((int)squareArray[i][0], (int)squareArray[i][1]);
+    double[][] squareArray = centerSquare();                                      // get array of points from centerSquare method
+    Polygon payload = new Polygon();                                              // define polygon shape
+    for(int i = 0; i < squareArray.length; i++){                                  // add points from squareArray to payload in turn
+      payload.addPoint((int)squareArray[i][0], (int)squareArray[i][1]);
     }
-    g2.draw(centerSquare);
+    Shape payloadRotated = payloadTransform.createTransformedShape(payload);      // rotate payload with transform
+    g2.draw(payloadRotated);
 
     // draw antenna loop inside of rectangle
-    int antennaLoopDiameter = (int)((centerSquare.xpoints[0] - centerSquare.xpoints[1]) * 0.9);
-    g2.drawOval(CIRCLE_CENTER[0] - (antennaLoopDiameter/2), CIRCLE_CENTER[1] - (antennaLoopDiameter/2), antennaLoopDiameter, antennaLoopDiameter);
+    int antennaLoopDiameter = (int)((payload.getBounds().width ) * 0.9);          // set diameter of antenna loop to 90% of the payload width
+    Shape antennaLoop = new Ellipse2D.Double(                                     // define shape of antenna loop
+        CIRCLE_CENTER[0] - (antennaLoopDiameter/2),                            // x-coord is one radius less than the center
+        CIRCLE_CENTER[1] - (antennaLoopDiameter/2),                            // y-coord is one radius less than the center
+          antennaLoopDiameter,
+          antennaLoopDiameter
+    );
+    Shape antennaLoopRotated = payloadTransform.createTransformedShape(antennaLoop);// rotate the antenna loop
+    g2.draw(antennaLoopRotated);
 
     // draw antenna extension from rectangle
-    double antennaAngle = Math.toRadians(50);                           // angle that antenna extends from antenna loop
-    int antennaLength = 500;                                            // length of antenna extending from antenna loop
-    int startPointX = (int) ( CIRCLE_CENTER[0] + (antennaLoopDiameter / 2) * Math.cos(Math.toRadians(45)));    // start point for antenna (right edge of antenna loop)
-    int startPointY = (int) ( CIRCLE_CENTER[1] + (antennaLoopDiameter / 2) * Math.sin(Math.toRadians(45)));
-    int endPointX = (int) (startPointX + ( antennaLength * Math.cos(antennaAngle))); // end point of antenna (start + length * cos/sin angle)
-    int endPointY = (int) (startPointY - ( antennaLength * Math.sin(antennaAngle)));
-    g2.drawLine(startPointX, startPointY, endPointX, endPointY);
+    double antennaAngle = Math.toRadians(50);                                                                   // angle that antenna extends from antenna loop
+    int antennaLength = 500;                                                                                    // length of antenna extending from antenna loop
+    double antStartPointX = ( CIRCLE_CENTER[0] + (antennaLoopDiameter / 2) * Math.cos(Math.toRadians(45)));     // start point for antenna (right edge of antenna loop)
+    double antStartPointY = ( CIRCLE_CENTER[1] + (antennaLoopDiameter / 2) * Math.sin(Math.toRadians(45)));
+    double antEndPointX = (antStartPointX + ( antennaLength * Math.cos(antennaAngle)));                         // end point of antenna (start + length * cos/sin angle)
+    double antEndPointY = (antStartPointY - ( antennaLength * Math.sin(antennaAngle)));
+    Shape antenna = new Line2D.Double(                                                                          // define shape of antenna
+        antStartPointX,
+        antStartPointY,
+        antEndPointX,
+        antEndPointY
+    );
+    Shape antennaRotated = payloadTransform.createTransformedShape(antenna);                                    // rotate the antenna
+    g2.draw(antennaRotated);
 
 
 

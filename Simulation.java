@@ -36,10 +36,13 @@ public class Simulation extends JFrame {
 
     // loop operation 10 times
     for(int i = 0; i < 10; i ++) {
-      System.out.println("Iteration: " + i);
+      //System.out.println("Iteration: " + i);
       // set body tube for random rotation
       bodyTubeRotation = Math.toRadians(Math.random() * 360);
       payloadRotation = 0;
+      int maxHeight = 0;
+      int maxHeightAngle = 0;
+      int[] maxHeightCoords = new int[2];
 
       panel.repaint();            // repaint panel to show the random rotation
       try {
@@ -51,6 +54,14 @@ public class Simulation extends JFrame {
       for (int j = 0; j <= 360; j++) {  // rotate payload one degree at a time
         payloadRotation = Math.toRadians(j);
         panel.repaint();              // repaint panel to show
+        int currentHeight = panel.FRAME_HEIGHT - panel.antEndPointY;
+        System.out.println(panel.antEndPointX + ", " + panel.antEndPointY);
+        if( currentHeight > maxHeight){
+          maxHeight = currentHeight;
+          maxHeightAngle = j;
+          maxHeightCoords[0] = panel.antStartPointX;
+          maxHeightCoords[1] = panel.antStartPointY;
+        }
         try {
           Thread.sleep(10);     // sleep 20 millis so we don't rotate too fast
         } catch (Exception e) {
@@ -58,9 +69,12 @@ public class Simulation extends JFrame {
         }
       }
 
+      System.out.println("Max Height: " + maxHeight);
+      System.out.println("Max Height Angle: " + maxHeightAngle);
+      System.out.println("Max Height Coords: <" + maxHeightCoords[0] + ", " + maxHeightCoords[1] + ">");
+
+
     }
-
-
 
   }
 }

@@ -17,19 +17,27 @@ public class SimulationPanel extends JPanel {
   int FRAME_WIDTH = 1024;
   int[] CIRCLE_CENTER = {FRAME_HEIGHT/2, FRAME_WIDTH/2};
   int CIRCLE_RADIUS = FRAME_HEIGHT/4;
-  int antStartPointX;
-  int antStartPointY;
-  int antEndPointX;
-  int antEndPointY;
+  double rotatedAntMaxHeight;
+  int SWEET_SPOT_X = 590;   //sweet spot is ideal position for body tube. we want to be closest to this
+  int SWEET_SPOT_Y = 265;
+  boolean stop = false;     // determines if antenna is in spot closest to sweet spot
+  String direction = "cw"; // this string holds the direction the payload needs to turn. cw/ ccw
+
 
 
   /**Simple Constructor for the Panel**/
-  public SimulationPanel(){}
+  public SimulationPanel(){
+    this.setBackground(Color.BLACK);
+  }
 
   public void paint(Graphics g){
     super.paintComponent(g); // clear before repainting
 
     Graphics2D g2 = ( Graphics2D ) g; // typecast graphics to graphics 2d
+    /*-------------------------------------------------Put in the sweet spot--------------------------------------------------------*/
+    g2.setPaint(Color.YELLOW);
+    Rectangle2D sweetSpot = new Rectangle2D.Double(SWEET_SPOT_X, SWEET_SPOT_Y, 6 ,6);
+    g2.fill(sweetSpot);
 
 
     /*-------------------------------------------------- Update Data Fields ---------------------------------------------------------*/
@@ -41,15 +49,17 @@ public class SimulationPanel extends JPanel {
     // draw body tube
     Shape bodyTube = new Ellipse2D.Double(FRAME_WIDTH/4, FRAME_HEIGHT/4, FRAME_WIDTH /2, FRAME_HEIGHT /2); // define the body tube ellipse
     Shape bodyTubeRotated = bodyTubeTransform.createTransformedShape(bodyTube);                                                // rotate body tube around origin with transform
-    g2.setPaint(Color.BLACK);
+    g2.setPaint(Color.WHITE);
     g2.draw(bodyTubeRotated);
 
     // draw dots
     g2.setPaint(Color.RED);
     double[][] dots = dotArray();                           // get array of points from dotArray method
+    Shape[] dotShapeList = new Shape[8];
     for(int i = 0; i < dots.length; i++){                   // draw each point in turn
-      Shape dot = new Rectangle2D.Double((int)dots[i][0], (int)dots[i][1], 4, 4);  // define the dot
-      Shape dotRotated = bodyTubeTransform.createTransformedShape(dot);                          // rotate the dot about origin with affine transform
+      Shape dot = new Rectangle2D.Double((int)dots[i][0], (int)dots[i][1], 6, 6);       // define the dot
+      Shape dotRotated = bodyTubeTransform.createTransformedShape(dot);                       // rotate the dot about origin with affine transform
+      dotShapeList[i] = dotRotated;
       g2.fill(dotRotated);
     }
 
@@ -95,6 +105,38 @@ public class SimulationPanel extends JPanel {
     );
     Shape antennaRotated = payloadTransform.createTransformedShape(antenna);                                    // rotate the antenna
     g2.draw(antennaRotated);
+
+    /*-------------------------------------------------------------Check Intersections ---------------------------------------*/
+    Shape closest = dotShapeList[0]; // initiate closest point with first shape
+    for(int i = 0; i < dotShapeList.length; i++){
+
+      // print intersections to console
+      if( antennaRotated.intersects(
+          dotShapeList[i].getBounds2D().getX(),
+          dotShapeList[i].getBounds2D().getY(),
+          6,
+          6)){
+        System.out.println("Intersection at <" + dotShapeList[i].getBounds2D().getX()
+                            + ", " + dotShapeList[i].getBounds2D().getY() + ">");
+      }
+
+      // determine which shape is closest
+      if( distance(sweetSpot, dotShapeList[i]) < distance(sweetSpot, closest)){
+        closest = dotShapeList[i];
+      }
+    }
+
+    /*----------------------------------------------------------Set globals to turn shape correct way -------------------------*/
+    if( antennaRotated.intersects(closest.getBounds().getX(), closest.getBounds().getY(), 6, 6)){
+      stop = true;
+      System.out.println("Most efficient spot found");
+    }
+
+
+
+
+    // save rotated coords to global for parent
+    rotatedAntMaxHeight = FRAME_HEIGHT - antennaRotated.getBounds2D().getMinY();
 
 
 
@@ -142,5 +184,17 @@ public class SimulationPanel extends JPanel {
 
     return square;
   }
+
+  /** this method accepts two rectangles and returns the distance between them
+   *
+   */
+  public double distance(Shape r1, Shape r2){
+    double x1 = r1.getBounds().getX();
+    double x2 = r2.getBounds().getX();
+    double y1 = r1.getBounds().getY();
+    double y2 = r2.getBounds().getY();
+    return (Math.sqrt( Math.pow( (x1-x2), 2) + Math.pow( (y1-y2), 2) ));
+  }
+
 }
 

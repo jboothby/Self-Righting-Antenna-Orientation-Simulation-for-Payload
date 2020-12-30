@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.Random;
 
 public class Simulation extends JFrame {
@@ -15,34 +16,33 @@ public class Simulation extends JFrame {
   private JTextArea textArea2;
 
   // constructor for the Simulation JFrame
-  public Simulation(){
+  public Simulation() {
     panel = new SimulationPanel();    // create panel
     setContentPane(panel);                            // add panel to the frame
     panel.saveParent(this);                        // save parent as this object
 
     // set visual attributes for the JFrame
-    this.setForeground(Color.BLACK);
-    this.setBackground(Color.WHITE);
+    this.setForeground(Color.WHITE);
+    this.setBackground(Color.BLACK);
     this.setTitle("Orientation Simulation");
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     this.setVisible(true);
   }
 
-  public static void main(String args[]){
+  public static void main(String args[]) {
 
 
     Simulation frame = new Simulation();
 
     // loop operation 10 times
-    for(int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       //System.out.println("Iteration: " + i);
       // set body tube for random rotation
       bodyTubeRotation = Math.toRadians(Math.random() * 360);
       payloadRotation = 0;
-      int maxHeight = 0;
+      double maxHeight = 0;
       int maxHeightAngle = 0;
-      int[] maxHeightCoords = new int[2];
 
       panel.repaint();            // repaint panel to show the random rotation
       try {
@@ -51,30 +51,53 @@ public class Simulation extends JFrame {
         e.printStackTrace();
       }
 
+
       for (int j = 0; j <= 360; j++) {  // rotate payload one degree at a time
         payloadRotation = Math.toRadians(j);
         panel.repaint();              // repaint panel to show
-        int currentHeight = panel.FRAME_HEIGHT - panel.antEndPointY;
-        System.out.println(panel.antEndPointX + ", " + panel.antEndPointY);
-        if( currentHeight > maxHeight){
+        double currentHeight = panel.rotatedAntMaxHeight;
+        if(panel.stop) break;   //break out of loop if we are intersecting the closest dot
+        if (currentHeight > maxHeight) {      //print out what the max hight was during the loop
           maxHeight = currentHeight;
           maxHeightAngle = j;
-          maxHeightCoords[0] = panel.antStartPointX;
-          maxHeightCoords[1] = panel.antStartPointY;
+          System.out.println("Max Height: " + maxHeight);
+          System.out.println("Max Height Angle: " + maxHeightAngle);
         }
         try {
-          Thread.sleep(10);     // sleep 20 millis so we don't rotate too fast
+          Thread.sleep(5);     // sleep 20 millis so we don't rotate too fast
         } catch (Exception e) {
           e.printStackTrace();
         }
+        panel.repaint();
+
+        }
+
+      // final pause
+      try{
+        Thread.sleep(2000);
+      }catch(Exception e){
+        e.printStackTrace();
       }
-
-      System.out.println("Max Height: " + maxHeight);
-      System.out.println("Max Height Angle: " + maxHeightAngle);
-      System.out.println("Max Height Coords: <" + maxHeightCoords[0] + ", " + maxHeightCoords[1] + ">");
+      panel.stop = false;
 
 
+
+      /*---------------------------------------- Sweet spot finder code -------------------------------
+
+      payloadRotation = Math.toRadians(304);
+      panel.repaint();
+      for( int k = 0; k <= 360; k++) {
+        bodyTubeRotation = Math.toRadians(k);
+        panel.repaint();
+        try{
+          Thread.sleep(10);
+        }catch(Exception e){
+          e.printStackTrace();
+        }
+
+       */
+
+      }
     }
-
   }
-}
+
